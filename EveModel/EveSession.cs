@@ -112,6 +112,24 @@ namespace EveModel
         }
         #endregion
 
+        #region ShipId
+        private long? _shipID;
+        /// <summary>
+        /// returns -1 if no charid was found
+        /// </summary>
+        public long ShipId
+        {
+            get
+            {
+                if (!_shipID.HasValue)
+                {
+                    _shipID = this["shipid"].GetValueAs<long>();
+                }
+                return _shipID.Value;
+            }
+        }
+        #endregion
+
         #region EveTime
         DateTime? _eveTime;
         public DateTime EveTime

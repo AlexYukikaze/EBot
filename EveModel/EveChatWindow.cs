@@ -39,14 +39,11 @@ namespace EveModel
                 return _members;
             }
         }
-        int? _memberCount;
         public int MemberCount
         {
             get
             {
-                if (!_memberCount.HasValue)
-                    _memberCount = this["memberCount"].GetValueAs<int>();
-                return _memberCount.Value;
+                return Members.Count;
             }
         }
     }

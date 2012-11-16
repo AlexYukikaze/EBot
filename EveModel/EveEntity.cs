@@ -9,6 +9,10 @@ namespace EveModel
     {
         List<EveObject> damageList;
 
+        public enum EntitySizes { Unknown, Frigate, Cruiser, BattleCruiser, Battleship }
+        
+        int[] _frigateSize = { 25, 105, 520, 527, 550, 557, 562, 567, 572, 597, 606, 615, 624, 633, 665, 671, 677, 683, 687, 693, 699, 759, 789, 792, 800, 805, 810, 814, 818, 819, 826, 847, 100, 105 };
+
         public enum EntityMovementState
         {
             ManualFlying = 0,
@@ -51,6 +55,16 @@ namespace EveModel
         public long Id { get; private set; }
         #endregion
 
+        public EntitySizes EntitySize
+        {
+            get
+            {
+                if (_frigateSize.Contains(_item.GroupId))
+                    return EntitySizes.Frigate;
+                return EntitySizes.Unknown;
+            }
+        }
+
         #region Name
         string _name;
         public string Name
@@ -90,11 +104,8 @@ namespace EveModel
         {
             get
             {
-                if (!_ball["exploded"].IsValid)
-                    return false;
                 if (!_hasExploded.HasValue)
                     _hasExploded = _ball["exploded"].GetValueAs<bool>();
-
                 return _hasExploded.Value;
             }
         }
@@ -293,6 +304,11 @@ namespace EveModel
             {
                 return Frame.Client.TargetManager.CallMethod("IsInTargetingRange", new object[] { Id }).GetValueAs<bool>();
             }
+        }
+        public void SetAsActiveTarget()
+        {
+            if (this.IsTarget)
+                Frame.Client.TargetManager.CallMethod("_SetSelected", new object[] { this.Id });
         }
 
     }

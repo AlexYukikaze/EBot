@@ -21,6 +21,41 @@ namespace EveModel
             }
         }
 
+        public void Fit(string fittingName)
+        {
+            if (Frame.Client.GetFittingWindow == null)
+                return;
+            var fs = Frame.Client.GetService("fittingSvc")["fittings"].GetDictionary<int>().Where(f => f.Key == Frame.Client.Session.CharId).FirstOrDefault().Value;
+            if (fs != null)
+            {
+                foreach (var item in fs.GetDictionary<int>())
+                {
+                    if (fittingName.ToLower() == item.Value["name"].GetValueAs<string>().ToLower())
+                    {
+                        Frame.Client.GetService("fittingSvc").CallMethod("LoadFitting", new object[] { Frame.Client.Session.CharId, item.Key }, true);
+                        break;
+                    }
+                }
+            }
+
+        }
+
+        public int DronesInBay
+        {
+            get
+            {
+                var shipInv = Frame.Client.InvCache.CallMethod("GetInventoryFromId", new object[] { Frame.Client.Session.ShipId });
+                return shipInv.CallMethod("ListDroneBay", new object[0]).GetList<EveObject>().Count;
+            }
+        }
+
+        public void ReleaseDrones()
+        {
+            var shipInv = Frame.Client.InvCache.CallMethod("GetInventoryFromId", new object[] { Frame.Client.Session.ShipId });
+            var drones = shipInv.CallMethod("ListDroneBay", new object[0]);
+            Frame.Client.MenuService.CallMethod("LaunchDrones", new object[] { drones }, true);
+        }
+
         EveEntity _entity;
         public EveEntity ToEntity
         {
@@ -142,7 +177,9 @@ namespace EveModel
             {
                 if (!Frame.Client.IsUnifiedInventoryOpen)
                 {
+                    Frame.Log("Can't check ammo when inventory is closed");
                     Frame.Client.ExecuteCommand(EveCommand.OpenInventory);
+                    return false;
                 }
                 double chargesUsed = 0, chargesInCargo = 0, chargeId = -1;
                 foreach (var weapon in Weapons)
@@ -160,6 +197,13 @@ namespace EveModel
                     }
                 }
                 return chargesInCargo < Weapons.Count;
+            }
+        }
+        public double MaxLockedTargets
+        {
+            get
+            {
+                return Attributes["maxLockedTargets"].GetValueAs<double>();
             }
         }
     }

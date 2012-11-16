@@ -35,8 +35,8 @@ namespace EveModel
         /// <param name="lse"></param>
         void OnInnerspaceFrame(object sender, LavishScriptAPI.LSEventArgs lse)
         {
-            //using (new FrameLock(true))
-            //{
+            using (new FrameLock(true))
+            {
                 using (EveClient _client = new EveClient())
                 {
                     Client = _client;
@@ -44,7 +44,7 @@ namespace EveModel
                         OnFrame(this, new EventArgs());
                     Client = null;
                 }
-            //}
+            }
         }
         public void Dispose()
         {

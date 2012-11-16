@@ -164,6 +164,22 @@ namespace EveModel
             }
         }
         /// <summary>
+        /// Gets a reference for the invCache service form the EVE client process
+        /// </summary>
+        public EveObject InvCache
+        {
+            get
+            {
+                EveObject obj;
+                if (!Objects.TryGetValue("invCache", out obj))
+                {
+                    obj = GetService("invCache");
+                }
+                return obj;
+            }
+        }
+
+        /// <summary>
         /// Gets a reference for the menu service form the EVE client process
         /// </summary>
         public EveObject MenuService
@@ -636,6 +652,13 @@ namespace EveModel
             return _agentDialogWindow;
         }
 
+        public EveWindow GetFittingWindow
+        {
+            get
+            {
+                return this.GetWindows.Where(w => w.Type == EveWindow.EveWindowType.FittingWindow).FirstOrDefault();
+            }
+        }
 
         EveActiveShip _activeship;
         public EveActiveShip GetActiveShip
@@ -691,6 +714,17 @@ namespace EveModel
             return list;
         }
 
+        public List<EveEntity> GetNPCTargets()
+        {
+            return Entities.Where(
+                en => en.IsNpc &&
+                        en.Distance < 125000 &&
+                        en._item.Category == Category.Entity &&
+                        en._item.Group != Group.LargeCollidableStructure &&
+                        en._item.Group != Group.SpawnContainer &&
+                        !en.HasExploded && en.IsValid
+                        ).OrderBy(en => en.Distance).ToList<EveEntity>();
+        }
 
         #region External Resources
         static string _innerspacePath = @"C:\Program Files (x86)\InnerSpace\.NET Programs";

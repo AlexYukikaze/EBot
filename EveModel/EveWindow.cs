@@ -10,6 +10,7 @@ namespace EveModel
         public enum Button
         {
             Accept,
+            Browse,
             Close,
             CompleteMission,
             Decline,
@@ -25,6 +26,9 @@ namespace EveModel
             {
                 case Button.Accept:
                     btnText = "Accept";
+                    break;
+                case Button.Browse:
+                    btnText = "Browse";
                     break;
                 case Button.Close:
                     btnText = "Close";
@@ -79,6 +83,7 @@ namespace EveModel
             Assets,
             Chat,
             Drones,
+            FittingWindow,
             Inventory,
             LootContainer,
             Overview,
@@ -159,6 +164,7 @@ namespace EveModel
                     case "form.Scanner": windowType = EveWindowType.Scanner; break;
                     case "form.LootCargoView": windowType = EveWindowType.LootContainer; break;
                     case "form.DroneView": windowType = EveWindowType.Drones; break;
+                    case "form.FittingWindow": windowType = EveWindowType.FittingWindow; break;
                 }
                 return windowType;
             }

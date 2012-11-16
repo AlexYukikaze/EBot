@@ -12,6 +12,7 @@ namespace EveModel
         /// </summary>
         Dictionary<string, EveObject> _attributes;
         string _name;
+        bool _addedToCache;
 
         internal EveObject()
         {
@@ -23,17 +24,18 @@ namespace EveModel
         /// <param name="ptr">Address of object</param>
         /// <param name="name">Name used in caching</param>
         /// <param name="addToGlobalCache">Whether or not this object should be cached, defaults to true</param>
-        public  EveObject(IntPtr ptr, string name, bool addToGlobalCache = true)
+        public EveObject(IntPtr ptr, string name, bool addToGlobalCache = true)
         {
             PointerToObject = ptr;
             _attributes = new Dictionary<string, EveObject>();
             _name = name ?? PointerToObject.ToString();
             if (IsValid && addToGlobalCache && !Frame.Client.Objects.ContainsKey(_name))
                 Frame.Client.Objects.Add(_name, this);
+            _addedToCache = addToGlobalCache;
         }
 
         public virtual IntPtr PointerToObject { get; set; }
-        
+
         PyType? _objectType;
         /// <summary>
         /// Returns the object type see <see cref="PyType"/>
@@ -197,8 +199,7 @@ namespace EveModel
                     List<EveObject> list = objList.GetList<EveObject>();
                     foreach (EveObject current in list)
                     {
-                        if (current.IsValid)
-                            dictionary[current.GetValueAs<T>()] = new EveObject(PyCall.PyDict_GetItem(this.PointerToObject, current.PointerToObject), null, false);
+                        dictionary[current.GetValueAs<T>()] = new EveObject(PyCall.PyDict_GetItem(this.PointerToObject, current.PointerToObject), null, false);
                     }
                 }
                 result = dictionary;
@@ -333,11 +334,14 @@ namespace EveModel
         /// <returns></returns>
         public EveObject CallMethod(string name, object[] parameters, bool useNewthread = false, Dictionary<string, object> args = null)
         {
+            EveObject cleanupParam, cleanupMethod;
             if (!this.IsValid)
             {
                 return null;
             }
             IntPtr methodPtr = PyCall.PyObject_GetAttrString(this.PointerToObject, name);
+            cleanupMethod = new EveObject(methodPtr, null);
+
             if (methodPtr == IntPtr.Zero)
                 return null;
 
@@ -374,6 +378,7 @@ namespace EveModel
                     paramPtr = PyCall.Py_BuildValue_Params6("(" + "OOOOOO" + ")", BuildParam(parameters[0]), BuildParam(parameters[1]), BuildParam(parameters[2]), BuildParam(parameters[3]), BuildParam(parameters[4]), BuildParam(parameters[5]));
                     break;
             }
+            cleanupParam = new EveObject(paramPtr, null);
 
             EveObject pydict;
             if (args == null || args.Count == 0)
@@ -386,7 +391,7 @@ namespace EveModel
                     IntPtr paramValue = BuildParam(item.Value);
                     EveObject paramObject = new EveObject(paramValue, null);
                     PyCall.Py_IncRef(paramValue);
-                    PyCall.PyDict_SetItem(pydict.PointerToObject, new EveObject(PyCall.PyString_FromString(item.Key), null, false).PointerToObject, paramValue);
+                    PyCall.PyDict_SetItem(pydict.PointerToObject, new EveObject(PyCall.PyString_FromString(item.Key), null, true).PointerToObject, paramValue);
                 }
             }
             if (PyCall.PyErr_Occurred() != IntPtr.Zero)
@@ -403,56 +408,67 @@ namespace EveModel
         /// <returns>An IntPtr for the param</returns>
         IntPtr BuildParam(object obj)
         {
+            EveObject cleanupParam = new EveObject(IntPtr.Zero, null, false);
             if (obj is bool)
             {
                 if ((bool)obj)
                 {
-                    return PyCall.PyBool_FromLong(1);
+                    cleanupParam = new EveObject(PyCall.PyBool_FromLong(1), null);
                 }
                 else
                 {
-                    return PyCall.PyBool_FromLong(0);
+                    cleanupParam = new EveObject(PyCall.PyBool_FromLong(0), null);
                 }
             }
             if (obj is string)
             {
-                return PyCall.PyString_FromString(obj as string);
+                cleanupParam = new EveObject(PyCall.PyString_FromString(obj as string), null);
             }
             if (obj is IntPtr)
             {
-                return (IntPtr)obj;
+                cleanupParam = new EveObject((IntPtr)obj, null);
             }
             if (obj is long)
             {
-                return PyCall.PyLong_FromLongLong((long)obj);
+                cleanupParam = new EveObject(PyCall.PyLong_FromLongLong((long)obj), null);
             }
             if (obj is int)
             {
-                return PyCall.PyLong_FromLong((int)obj);
+                cleanupParam = new EveObject(PyCall.PyLong_FromLong((int)obj), null);
             }
             if (obj is double)
             {
-                return PyCall.PyFloat_FromDouble((double)obj);
+                cleanupParam = new EveObject(PyCall.PyFloat_FromDouble((double)obj), null);
             }
             if (obj is EveObject)
             {
-                return ((EveObject)obj).PointerToObject;
+                cleanupParam = ((EveObject)obj);
             }
-            return IntPtr.Zero;
+            return cleanupParam.PointerToObject;
         }
         /// <summary>
         /// Returns true of this is not an IntPtr
         /// </summary>
         public bool IsValid { get { return this.PointerToObject != IntPtr.Zero; } }
 
+        bool _isDisposed;
         public void Dispose()
         {
+            if (_isDisposed)
+                return;
+            _isDisposed = true;
+            foreach (var item in _attributes)
+            {
+                item.Value.Dispose();
+            }
+            _attributes = null;
             if (PointerToObject != IntPtr.Zero)
             {
                 PyCall.Py_DecRef(PointerToObject);
             }
             PointerToObject = IntPtr.Zero;
         }
+
         public override string ToString()
         {
             return this._name;

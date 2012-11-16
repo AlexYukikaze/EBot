@@ -48,5 +48,9 @@ namespace EveModel
         {
             this["invController"].CallMethod("_BaseInvContainer__AddItem", new object[] { item.ItemId, item.LocationId, quantity }, true);
         }
+        public void StackAll()
+        {
+            this["invController"].CallMethod("StackAll", new object[0], true);
+        }
     }
 }
