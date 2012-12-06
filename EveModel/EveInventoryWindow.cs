@@ -9,14 +9,14 @@ namespace EveModel
     {
         public bool IsPrimaryInvWindow
         {
-            get { return this.CallMethod("IsPrimaryInvWindow", new object[0]).GetValueAs<bool>(); }
+            get { return this.Guid == "form.InventoryPrimary"; }
         }
         public List<EveInventoryContainer> Containers
         {
             get
             {
                 List<EveInventoryContainer> containers = new List<EveInventoryContainer>();
-                foreach (var cont in this["treeData"].GetList<EveObject>())
+                foreach (var cont in this["treeData"]["_children"].GetList<EveObject>())
                 {
                     containers.Add(new EveInventoryContainer(cont));
                 }

@@ -177,9 +177,9 @@ namespace EveModel
 
         public void ChangeAmmo(EveItem charge)
         {
-            if (charge._itemId <= 0L)
-                return;
-            this.CallMethod("ChangeAmmoType", new object[] { charge.TypeId, charge.Stacksize }, true);
+            //if (charge._itemId <= 0L)
+            //    return;
+            //this.CallMethod("ChangeAmmoType", new object[] { charge.TypeId, charge.Stacksize }, true);
         }
 
         #region IsChangingAmmo

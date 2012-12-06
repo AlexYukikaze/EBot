@@ -98,6 +98,14 @@ namespace EveModel
         }
         #endregion
 
+        public bool IsEvePlayer
+        {
+            get
+            {
+                return _item.CharId > 0;
+            }
+        }
+
         #region HasExploded
         bool? _hasExploded;
         public bool HasExploded

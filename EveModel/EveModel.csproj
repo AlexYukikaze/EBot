@@ -64,6 +64,7 @@
     <Compile Include="EveModule.cs" />
     <Compile Include="EveObject.cs" />
     <Compile Include="EveOwner.cs" />
+    <Compile Include="EveScanResult.cs" />
     <Compile Include="EveSession.cs" />
     <Compile Include="EveWindow.cs" />
     <Compile Include="FlagIds.cs" />

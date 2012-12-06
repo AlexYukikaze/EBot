@@ -13,6 +13,19 @@ namespace EveModel
             this.TypeId = this["typeID"].GetValueAs<int>();
         }
 
+        #region CharId
+        int? _charId;
+        public int CharId
+        {
+            get
+            {
+                if (!_charId.HasValue)
+                    _charId = this["charID"].GetValueAs<int>();
+                return _charId.Value;
+            }
+        }
+        #endregion
+
         #region FlagId
         int? _flagId;
         public int FlagId

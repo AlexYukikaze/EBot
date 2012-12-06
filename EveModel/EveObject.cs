@@ -409,7 +409,20 @@ namespace EveModel
         IntPtr BuildParam(object obj)
         {
             EveObject cleanupParam = new EveObject(IntPtr.Zero, null, false);
-            if (obj is bool)
+            if (obj is IEnumerable<object>)
+            {
+                IEnumerable<object> list = obj as IEnumerable<object>;
+                cleanupParam = new EveObject(PyCall.PyList_New(list.Count()), null, false);
+                int i = 0;
+                foreach (var item in list)
+                {
+                    var listItem = BuildParam(item);
+                    PyCall.Py_IncRef(listItem);
+                    PyCall.PyList_SetItem(cleanupParam.PointerToObject, i, listItem);
+                    i++;
+                }
+            }
+            else if (obj is bool)
             {
                 if ((bool)obj)
                 {
@@ -420,27 +433,27 @@ namespace EveModel
                     cleanupParam = new EveObject(PyCall.PyBool_FromLong(0), null);
                 }
             }
-            if (obj is string)
+            else if (obj is string)
             {
                 cleanupParam = new EveObject(PyCall.PyString_FromString(obj as string), null);
             }
-            if (obj is IntPtr)
+            else if (obj is IntPtr)
             {
                 cleanupParam = new EveObject((IntPtr)obj, null);
             }
-            if (obj is long)
+            else if (obj is long)
             {
                 cleanupParam = new EveObject(PyCall.PyLong_FromLongLong((long)obj), null);
             }
-            if (obj is int)
+            else if (obj is int)
             {
                 cleanupParam = new EveObject(PyCall.PyLong_FromLong((int)obj), null);
             }
-            if (obj is double)
+            else if (obj is double)
             {
                 cleanupParam = new EveObject(PyCall.PyFloat_FromDouble((double)obj), null);
             }
-            if (obj is EveObject)
+            else if (obj is EveObject)
             {
                 cleanupParam = ((EveObject)obj);
             }

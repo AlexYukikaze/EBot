@@ -13,7 +13,7 @@ namespace EveModel
         public static extern IntPtr GetProcAddress(IntPtr intptr_0, string string_0);
         [DllImport("kernel32.dll", SetLastError = true)]
         public static extern IntPtr LoadLibrary(string string_0);
-        [DllImport("python27.dll")]
+        [DllImport("python27.dll", EntryPoint = "Py_BuildValue")]
         public static extern IntPtr Py_BuildValue_Params6(string string_0, IntPtr intptr_0, IntPtr intptr_1, IntPtr intptr_2, IntPtr intptr_3, IntPtr intptr_4, IntPtr intptr_5);
         [DllImport("python27.dll", EntryPoint = "Py_BuildValue")]
         public static extern IntPtr Py_BuildValue_Params4(string string_0, IntPtr intptr_0, IntPtr intptr_1, IntPtr intptr_2, IntPtr intptr_3);

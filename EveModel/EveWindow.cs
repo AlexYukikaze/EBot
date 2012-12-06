@@ -92,6 +92,7 @@ namespace EveModel
             Scanner,
             Stack,
             StationServices,
+            Telecom,
             Unknown
         }
         public bool IsReady
@@ -155,6 +156,7 @@ namespace EveModel
                     case "form.ActiveItem": windowType = EveWindowType.SelectedItem; break;
                     case "form.AgentDialogueWindow": windowType = EveWindowType.AgentDialog; break;
                     case "form.AssetsWindow": windowType = EveWindowType.Assets; break;
+                    case "form.InventoryPrimary":
                     case "form.Inventory": windowType = EveWindowType.Inventory; break;
                     case "form.Lobby": windowType = EveWindowType.StationServices; break;
                     case "form.LSCChannel": windowType = EveWindowType.Chat; break;
@@ -165,6 +167,7 @@ namespace EveModel
                     case "form.LootCargoView": windowType = EveWindowType.LootContainer; break;
                     case "form.DroneView": windowType = EveWindowType.Drones; break;
                     case "form.FittingWindow": windowType = EveWindowType.FittingWindow; break;
+                    case "form.Telecom": windowType = EveWindowType.Telecom; break;
                 }
                 return windowType;
             }

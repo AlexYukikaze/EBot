@@ -103,7 +103,22 @@ namespace EveModel
                 EveObject obj;
                 if (!Objects.TryGetValue("LocalSvc", out obj))
                 {
-                    obj = Builtin["eve"]["LocalSvc"];
+                    obj = Builtin["eve"]["session"].CallMethod("ConnectToService", new object[] { "LocalSvc" }, true);
+                }
+                return obj;
+            }
+        }
+        /// <summary>
+        /// Gets the scanSvc object reference
+        /// </summary>
+        public EveObject ScanService
+        {
+            get
+            {
+                EveObject obj;
+                if (!Objects.TryGetValue("scanSvc", out obj))
+                {
+                    obj = GetService("scanSvc");
                 }
                 return obj;
             }
@@ -315,6 +330,21 @@ namespace EveModel
             }
         }
         /// <summary>
+        /// Gets a reference for the addressbook service form the EVE client process
+        /// </summary>
+        public EveObject AddressBook
+        {
+            get
+            {
+                EveObject obj;
+                if (!Objects.TryGetValue("addressbook", out obj))
+                {
+                    obj = GetService("addressbook");
+                }
+                return obj;
+            }
+        }
+        /// <summary>
         /// Gets a reference for the station service form the EVE client process
         /// </summary>
         public EveObject BookmarkService
@@ -389,7 +419,7 @@ namespace EveModel
         /// </summary>
         void PopulateEntityDictionary()
         {
-            var activeTargets = TargetManager["targets"].GetList<long>();
+            var activeTargets = TargetManager["targetsByID"].GetDictionary<long>().Keys;
             var beingTargeted = TargetManager["targeting"].GetDictionary<long>(); // Dictionary is <long, datetime> where datetime states when targeting started
             var targetedBy = TargetManager["targetedBy"].GetList<long>();
             var jammers = Frame.Client.Tactical["jammers"].GetDictionary<long>();
@@ -526,6 +556,7 @@ namespace EveModel
         {
             get { return GetPrimaryInventoryWindow != null; }
         }
+
         public List<EveInventoryWindow> InventoryWindows
         {
             get { return GetWindows.Where(w => w.Type == EveWindow.EveWindowType.Inventory).ToList<EveWindow>().ConvertAll<EveInventoryWindow>(new Converter<EveWindow, EveInventoryWindow>(EveWindow2EveInventoryWindow)); }
@@ -551,6 +582,38 @@ namespace EveModel
             return IsUnifiedInventoryOpen ? GetPrimaryInventoryWindow.ShipHangar : null;
         }
         #endregion
+
+        #region Scanner
+        public EveWindow GetScannerWindow
+        {
+            get { return Frame.Client.GetWindows.Where(w => w.Type == EveWindow.EveWindowType.Scanner).FirstOrDefault(); }
+        }
+
+        public List<EveScanResult> GetScanResults
+        {
+            get
+            {
+                if (GetScannerWindow == null)
+                    return null;
+                return ScanService.CallMethod("GetScanResults", new object[0]).GetList<EveObject>().ConvertAll<EveScanResult>(new Converter<EveObject, EveScanResult>(EveObject2EveScanResult));
+            }
+        }
+
+        public void Scan()
+        {
+            if (GetScannerWindow == null)
+                return;
+            if (Frame.Client.GetScannerWindow["sr"]["analyzeBtn"]["opacity"].GetValueAs<double>() == 0.25)
+                return;
+            Frame.Client.GetScannerWindow.CallMethod("Analyze", new object[0], true);
+        }
+        #endregion
+
+        public void BookmarkCurrentLocation(string name, string comment)
+        {
+            if (Frame.Client.Session.InSpace)
+                Frame.Client.BookmarkService.CallMethod("BookmarkLocation", new object[] { Frame.Client.GetActiveShip.ToEntity.Id, Frame.Client.Session.CharId, name, comment, Frame.Client.Session.SolarSystemId }, true, new Dictionary<string, object>());
+        }
 
         public EveObject GetLocation(object[] parameters)
         {
@@ -874,6 +937,10 @@ namespace EveModel
         internal static EveInventoryWindow EveWindow2EveInventoryWindow(EveObject obj)
         {
             return new EveInventoryWindow() { PointerToObject = obj.PointerToObject };
+        }
+        internal static EveScanResult EveObject2EveScanResult(EveObject obj)
+        {
+            return new EveScanResult() { PointerToObject = obj.PointerToObject };
         }
         #endregion
 

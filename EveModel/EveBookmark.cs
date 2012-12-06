@@ -58,5 +58,9 @@ namespace EveModel
         {
             Frame.Client.MenuService.CallMethod("WarpToBookmark", new object[] { this, distance }, true);
         }
+        public void Delete()
+        {
+            Frame.Client.AddressBook.CallMethod("DeleteBookmarks", new object[] { new List<object>() { BookmarkId } }, true);
+        }
     }
 }
